@@ -21,8 +21,7 @@ export const collectMediaNodes = (article: HTMLElement) =>
 
 export const handleTimelineMediaClick = (
   event: MouseEvent,
-  targetElement: HTMLElement | null,
-  checkOnly?: boolean
+  targetElement: HTMLElement | null
 ): boolean => {
   if (!targetElement) return false;
   const mediaTarget = targetElement.closest<HTMLElement>(MEDIA_NODE_SELECTOR);
@@ -62,8 +61,6 @@ export const handleTimelineMediaClick = (
   if (typeof event.stopImmediatePropagation === "function") {
     event.stopImmediatePropagation();
   }
-
-  if (checkOnly) return false;
 
   const videoTarget = mediaTarget.querySelector("video");
   if (videoTarget) {

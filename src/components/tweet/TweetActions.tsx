@@ -65,6 +65,9 @@ const adjustCount = (value: number | null, delta: 1 | -1) => {
   return next < 0 ? 0 : next;
 };
 
+const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error ?? "未知错误");
+
 const TweetActions = ({
   tweet,
   size = "md",
@@ -107,6 +110,13 @@ const TweetActions = ({
     null | "reply" | "retweet" | "like" | "bookmark"
   >(null);
   const [likeActivatedByUser, setLikeActivatedByUser] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!actionError) return;
+    const timer = window.setTimeout(() => setActionError(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [actionError]);
 
   useEffect(() => {
     setCounts({ ...initialCounts });
@@ -137,6 +147,7 @@ const TweetActions = ({
     const nextActive = !currentActive;
 
     setPendingAction("retweet");
+    setActionError(null);
     setActives((previous) => ({ ...previous, retweet: nextActive }));
     setCounts((previous) => ({
       ...previous,
@@ -151,6 +162,7 @@ const TweetActions = ({
       }
     } catch (error) {
       console.error("[TSB][TweetActions] 转推失败", error);
+      setActionError(toErrorMessage(error));
       setActives((previous) => ({ ...previous, retweet: previousActive }));
       setCounts((previous) => ({ ...previous, retweet: previousCount }));
     } finally {
@@ -168,6 +180,7 @@ const TweetActions = ({
     const nextActive = !currentActive;
 
     setPendingAction("like");
+    setActionError(null);
     setActives((previous) => ({ ...previous, like: nextActive }));
     setCounts((previous) => ({
       ...previous,
@@ -183,6 +196,7 @@ const TweetActions = ({
       }
     } catch (error) {
       console.error("[TSB][TweetActions] 点赞失败", error);
+      setActionError(toErrorMessage(error));
       setActives((previous) => ({ ...previous, like: previousActive }));
       setCounts((previous) => ({ ...previous, like: previousCount }));
       setLikeActivatedByUser(previousUserActivated);
@@ -200,6 +214,7 @@ const TweetActions = ({
     const nextActive = !currentActive;
 
     setPendingAction("bookmark");
+    setActionError(null);
     setActives((previous) => ({ ...previous, bookmark: nextActive }));
     setCounts((previous) => ({
       ...previous,
@@ -214,6 +229,7 @@ const TweetActions = ({
       }
     } catch (error) {
       console.error("[TSB][TweetActions] 收藏失败", error);
+      setActionError(toErrorMessage(error));
       setActives((previous) => ({ ...previous, bookmark: previousActive }));
       setCounts((previous) => ({ ...previous, bookmark: previousCount }));
     } finally {
@@ -406,6 +422,15 @@ const TweetActions = ({
           </button>
         );
       })}
+      {actionError ? (
+        <p
+          role="status"
+          title={actionError}
+          className="text-twitter-text-error w-full text-[13px] leading-5"
+        >
+          操作失败：{actionError}
+        </p>
+      ) : null}
     </div>
   );
 };

@@ -157,24 +157,10 @@ export const registerGlobalClickInterceptor = () => {
     event.preventDefault();
     openTweetInSidebar(tweetId);
   };
-  const handlePointerDown = (event: MouseEvent) => {
-    const targetElement = normalizeTarget(event);
-    if (targetElement && isVideoController(targetElement)) {
-      event.stopPropagation();
-    }
-
-    if (handleTimelineMediaClick(event, targetElement, true)) {
-      event.stopPropagation();
-    }
-  };
 
   document.addEventListener("click", handleClick, { capture: true });
-  document.addEventListener("pointerdown", handlePointerDown, {
-    capture: true,
-  });
 
   return () => {
-    document.removeEventListener("pointerdown", handlePointerDown, true);
     document.removeEventListener("click", handleClick, true);
   };
 };

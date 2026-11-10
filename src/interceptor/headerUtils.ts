@@ -51,9 +51,21 @@ const getCookieValue = (name: string): string | null => {
   return null;
 };
 
+/**
+ * X's web bearer token looks like `AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D...`.
+ * Anything that does not match this shape (e.g. the first localStorage value X happens to have,
+ * `dark`, `en`, …) must be rejected: prefixing a random string with "Bearer " produced a header
+ * that silently failed with 401/403 instead of letting the caller notice it had no credentials.
+ */
+const BEARER_PATTERN = /^Bearer\s+[A-Za-z0-9%._-]{40,}$/;
+
 const normalizeAuthorization = (value?: string) => {
   if (!value) return undefined;
-  return value.startsWith("Bearer ") ? value : `Bearer ${value}`;
+  const trimmed = value.trim();
+  const candidate = trimmed.startsWith("Bearer ")
+    ? trimmed
+    : `Bearer ${trimmed}`;
+  return BEARER_PATTERN.test(candidate) ? candidate : undefined;
 };
 
 const sniffAuthorizationFromStorage = (
